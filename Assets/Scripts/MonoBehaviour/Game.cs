@@ -41,6 +41,7 @@ public class Game : MonoBehaviour
     }
 
     EntityManager manager;
+    public bool SpawnWavesAtStart = true;
     public UnitSettings enemy, bowMan, knight, projectile;
     public ObjectSettings spawner;
 
@@ -115,7 +116,7 @@ public class Game : MonoBehaviour
     {
         Init();
         TestSpawnEnemy();
-        //StartCoroutine(SpawnEveryFewSeconds(UnityEngine.Random.Range(0.2f, 3f)));
+        if(SpawnWavesAtStart) StartCoroutine(SpawnEveryFewSeconds(UnityEngine.Random.Range(0.2f, 3f)));
     }
 
     [ContextMenu("Test Spawn")]
