@@ -153,7 +153,7 @@ MonoBehaviour:
     mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
     material: {fileID: 2100000, guid: d423d4afd4866e643b2b59e62c0a5045, type: 2}
     health: 12
-    maxSpeed: 1
+    maxSpeed: 0.2
     acceleration: 0.1
     velocityDampen: 0.996
   bowMan:

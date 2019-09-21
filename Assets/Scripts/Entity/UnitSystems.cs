@@ -32,8 +32,10 @@ public class UnitSystems
         }
     }
 
+    
     public class AccelerateVelocity : JobComponentSystem
     {
+        [ExcludeComponent(typeof(Game.MaxSpeed))]
         [BurstCompile]
         struct AccelerationJob : IJobForEach<Game.Velocity, Game.Acceleration>
         {
@@ -48,6 +50,27 @@ public class UnitSystems
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
             var job = new AccelerationJob() { deltaTime = Time.deltaTime };
+            return job.Schedule(this, inputDeps);
+        }
+    }
+
+    public class LimitedAccelerateVelocity : JobComponentSystem
+    {
+        [BurstCompile]
+        struct LimitedAccelerationJob : IJobForEach<Game.Velocity, Game.Acceleration, Game.MaxSpeed>
+        {
+            public float deltaTime;
+            public void Execute(ref Game.Velocity velocity, [ReadOnly] ref Game.Acceleration acceleration, [ReadOnly] ref Game.MaxSpeed maxSpeed)
+            {
+                float3 newVelocity = velocity.Value + acceleration.Directed * deltaTime;
+                if(math.lengthsq( newVelocity) <= math.pow(maxSpeed.Value*deltaTime,2f))
+                    velocity.Value += acceleration.Directed * deltaTime;
+            }
+        }
+
+        protected override JobHandle OnUpdate(JobHandle inputDeps)
+        {
+            var job = new LimitedAccelerationJob() { deltaTime = Time.deltaTime };
             return job.Schedule(this, inputDeps);
         }
     }
