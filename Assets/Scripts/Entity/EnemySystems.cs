@@ -40,7 +40,7 @@ public class EnemySystems
 
             public void Execute(ref Game.Velocity velocity,[ReadOnly] ref Game.Acceleration acceleration)
             {
-                velocity.Value = velocity.Value + acceleration.Directed * deltaTime;
+                velocity.Value += + acceleration.Directed * deltaTime;
             }
         }
 
@@ -72,18 +72,19 @@ public class EnemySystems
     [UpdateAfter(typeof(VelocityTranslation))]
     public class DampenVelocity : JobComponentSystem
     {
+        [BurstCompile]
         struct DampenJob : IJobForEach<Game.Velocity, Game.DampenVelocity>
         {
-            public float timeDelta;
+            //public float timeDelta;
 
             public void Execute(ref Game.Velocity velocity, [ReadOnly] ref Game.DampenVelocity dampen)
             {
-                velocity.Value *= dampen.Value*timeDelta;
+                velocity.Value *= dampen.Value;// *timeDelta;
             }
         }
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
-            var job = new DampenJob() { timeDelta = Time.deltaTime};
+            var job = new DampenJob();// { timeDelta = Time.deltaTime};
             return job.Schedule(this, inputDeps);
         }
     }
