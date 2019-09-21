@@ -18,7 +18,7 @@ public class Game : MonoBehaviour
 
         public void InitAppearance(EntityManager _manager, Entity _entity, float _size=1f)
         {
-            _manager.SetSharedComponentData(_entity,new RenderMesh{ mesh = mesh,material = material});
+            _manager.SetSharedComponentData(_entity,new RenderMesh{ mesh = mesh,material = material,castShadows = UnityEngine.Rendering.ShadowCastingMode.On, receiveShadows = true});
             _manager.SetComponentData(_entity, new Scale { Value = _size });
         }
     }
