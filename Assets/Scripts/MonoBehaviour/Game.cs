@@ -10,7 +10,7 @@ using Unity.Collections;
 public class Game : MonoBehaviour
 {
     [System.Serializable]
-    public class UnitSettings
+    public class ObjectSettings
     {
         public Mesh mesh;
         public Material material;
@@ -19,12 +19,30 @@ public class Game : MonoBehaviour
         public void InitAppearance(EntityManager _manager, Entity _entity, float _size=1f)
         {
             _manager.SetSharedComponentData(_entity,new RenderMesh{ mesh = mesh,material = material});
-            _manager.SetComponentData(_entity, new Scale { Value = 1f });
+            _manager.SetComponentData(_entity, new Scale { Value = _size });
         }
+    }
+    [System.Serializable]
+    public class UnitSettings : ObjectSettings
+    {
+        public float health;
+        public float maxSpeed;
+        public float acceleration;
+        public float velocityDampen;
+
+        public void InitStats(EntityManager _manager, Entity _entity)
+        {
+            _manager.SetComponentData(_entity, new Health { Value = health });
+            _manager.SetComponentData(_entity, new Acceleration { Value = acceleration });
+            _manager.SetComponentData(_entity, new DampenVelocity { Value = velocityDampen });
+            _manager.SetComponentData(_entity, new MaxSpeed { Value = maxSpeed });
+        }
+
     }
 
     EntityManager manager;
-    public UnitSettings enemy, spawner, bowMan, knight, projectile;
+    public UnitSettings enemy, bowMan, knight, projectile;
+    public ObjectSettings spawner;
 
     //----------EntityTags---------//
     public struct Enemy : IComponentData { }
@@ -37,13 +55,26 @@ public class Game : MonoBehaviour
     }
     public struct Acceleration : IComponentData
     {
-        public float3 Value;
+        public float Value;
+        public float3 Directed;
+    }
+    public struct MaxSpeed : IComponentData
+    {
+        public float Value;
+    }
+    public struct DampenVelocity : IComponentData
+    {
+        public float Value;
     }
 
     //---------GameComponents---------//
     public struct Health : IComponentData
     {
         public float Value;
+    }
+    public struct Target : IComponentData
+    {
+        public float3 Position;
     }
 
     public void Init()
@@ -58,6 +89,9 @@ public class Game : MonoBehaviour
             typeof(Enemy),
             typeof(Velocity),
             typeof(Acceleration),
+            typeof(DampenVelocity),
+            typeof(MaxSpeed),
+            typeof(Target),
             typeof(Health)
         );
 
@@ -74,22 +108,28 @@ public class Game : MonoBehaviour
     {
         Init();
         TestSpawnEnemy();
+        StartCoroutine(SpawnEveryFewSeconds(UnityEngine.Random.Range(0.2f, 3f)));
     }
 
     [ContextMenu("Test Spawn")]
     public void TestSpawnEnemy()
     {
         var newUnit = manager.CreateEntity(enemy.archetype);
+        Vector3 spawnPoint = Quaternion.Euler(0f,UnityEngine.Random.Range(0f,360f),0f)* Vector3.forward * 10f;
         manager.SetComponentData(newUnit,
             new Translation
             {
-                Value = new float3(
-                    UnityEngine.Random.Range(-5f, 5f),
-                    0f,
-                    UnityEngine.Random.Range(-5f, 5f)
-                    )
+                Value = spawnPoint
             });
         enemy.InitAppearance(manager, newUnit);
+        enemy.InitStats(manager, newUnit);
+    }
+
+    IEnumerator SpawnEveryFewSeconds(float _time)
+    {
+        yield return new WaitForSeconds(_time);
+        TestSpawnEnemy();
+        StartCoroutine(SpawnEveryFewSeconds(UnityEngine.Random.Range(0.2f, 3f)));
     }
 
 }
