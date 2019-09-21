@@ -11,23 +11,65 @@ using Unity.Collections;
 
 public class UnitSystems 
 {
+    //static EntityManager manager;
+    public class MainThread : ComponentSystem
+    {
+        protected override void OnUpdate()
+        {
+            //if (UnitSystems.manager == null) manager = World.Active.EntityManager;
+            Entities.ForEach((Entity entity, ref Game.HasTarget target, ref Translation position, ref Game.Acceleration acceleration) => // DO IT ON THE MAINTHREAD BECAUSE WHY NOT RIGHT?!
+            {
+                //PostUpdateCommands.RemoveComponent(entity, typeof(RemoveTarget));
+                float3 distance = target.Position - position.Value;
+                distance.y = 0f;
+                if (math.lengthsq(distance) <= 0.1f)
+                {
+                    PostUpdateCommands.RemoveComponent(entity, typeof(Game.HasTarget));
+                    acceleration.Directed = new float3(0f, 0f, 0f);
+                }
+            });
+        }
+    }
+
+    //---------------OperationTags----------------
+    public struct RemoveTarget : IComponentData { }
+
 
     //---------------MovementSystems---------------
     public class AccelerateToTarget : JobComponentSystem
     {
+        //private readonly EndFrameBarrier m_EndFrameBarrier;
+        
+
         [BurstCompile]
-        struct TargetingJob : IJobForEach<Game.Acceleration, Game.Target, Translation>
+        struct TargetingJob : IJobForEachWithEntity<Game.Acceleration, Game.HasTarget, Translation>
         {
-            public void Execute(ref Game.Acceleration acceleration, [ReadOnly] ref Game.Target target, [ReadOnly] ref Translation position)
+            //public EntityCommandBuffer.Concurrent commands;
+
+            public void Execute(Entity entity, int index, ref Game.Acceleration acceleration, [ReadOnly] ref Game.HasTarget target, [ReadOnly] ref Translation position)
             {
-                float3 directed = math.normalize(target.Position - position.Value) * acceleration.Value;
+                float3 directed = target.Position - position.Value;
+                //if (math.lengthsq(directed) >= 0.1f)
+                //{
+                    //commands.RemoveComponent(entity, typeof(Game.HasTarget));
+                    //commands.RemoveComponent(index, entity, typeof(Game.HasTarget));
+                //}
+                directed = math.normalize(directed) * acceleration.Value;
                 acceleration.Directed = new float3(directed.x, 0f, directed.z);
             }
         }
 
+        //EndSimulationEntityCommandBufferSystem bufferSystem;
+
+        //protected override void OnCreate()
+        //{
+        //    bufferSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+        //    base.OnCreate();
+        //}
+
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
-            var job = new TargetingJob();
+            var job = new TargetingJob();// { commands = bufferSystem.CreateCommandBuffer().ToConcurrent() };
             return job.Schedule(this, inputDeps);
         }
     }
@@ -43,7 +85,7 @@ public class UnitSystems
 
             public void Execute(ref Game.Velocity velocity,[ReadOnly] ref Game.Acceleration acceleration)
             {
-                velocity.Value += + acceleration.Directed * deltaTime;
+                velocity.Value += acceleration.Directed * deltaTime;
             }
         }
 

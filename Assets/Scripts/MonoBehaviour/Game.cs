@@ -25,17 +25,17 @@ public class Game : MonoBehaviour
     [System.Serializable]
     public class UnitSettings : ObjectSettings
     {
-        public float health;
-        public float maxSpeed;
-        public float acceleration;
+        public AnimationCurve health = new AnimationCurve(new Keyframe(0f,8f),new Keyframe(1f,12f));
+        public AnimationCurve maxSpeed = new AnimationCurve(new Keyframe(0f, 0.2f), new Keyframe(1f, 8f));
+        public AnimationCurve acceleration = new AnimationCurve(new Keyframe(0f, 0.05f), new Keyframe(1f, 1f));
         public float velocityDampen;
 
         public void InitStats(EntityManager _manager, Entity _entity)
         {
-            _manager.SetComponentData(_entity, new Health { Value = health });
-            _manager.SetComponentData(_entity, new Acceleration { Value = acceleration });
+            _manager.SetComponentData(_entity, new Health { Value = health.Evaluate(UnityEngine.Random.value) });
+            _manager.SetComponentData(_entity, new Acceleration { Value = acceleration.Evaluate(UnityEngine.Random.value) });
             _manager.SetComponentData(_entity, new DampenVelocity { Value = velocityDampen });
-            _manager.SetComponentData(_entity, new MaxSpeed { Value = maxSpeed });
+            _manager.SetComponentData(_entity, new MaxSpeed { Value = maxSpeed.Evaluate(UnityEngine.Random.value) });
         }
 
     }
@@ -79,7 +79,7 @@ public class Game : MonoBehaviour
     {
         public float Value;
     }
-    public struct Target : IComponentData
+    public struct HasTarget : IComponentData
     {
         public float3 Position;
     }
@@ -98,7 +98,7 @@ public class Game : MonoBehaviour
             typeof(Acceleration),
             typeof(DampenVelocity),
             typeof(MaxSpeed),
-            typeof(Target),
+            typeof(HasTarget),
             typeof(Health)
         );
 
@@ -115,7 +115,7 @@ public class Game : MonoBehaviour
     {
         Init();
         TestSpawnEnemy();
-        StartCoroutine(SpawnEveryFewSeconds(UnityEngine.Random.Range(0.2f, 3f)));
+        //StartCoroutine(SpawnEveryFewSeconds(UnityEngine.Random.Range(0.2f, 3f)));
     }
 
     [ContextMenu("Test Spawn")]
@@ -133,6 +133,12 @@ public class Game : MonoBehaviour
             enemy.InitAppearance(manager, newUnit);
             enemy.InitStats(manager, newUnit);
         }
+    }
+
+    [ContextMenu("Start Spawning")]
+    public void StartSpawning()
+    {
+        StartCoroutine(SpawnEveryFewSeconds(UnityEngine.Random.Range(0.2f, 3f) * spawnFrequency));
     }
 
     IEnumerator SpawnEveryFewSeconds(float _time)
