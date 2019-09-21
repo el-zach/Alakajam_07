@@ -20,7 +20,8 @@ public class UnitSystems
         {
             public void Execute(ref Game.Acceleration acceleration, [ReadOnly] ref Game.Target target, [ReadOnly] ref Translation position)
             {
-                acceleration.Directed = math.normalize(target.Position - position.Value) * acceleration.Value;
+                float3 directed = math.normalize(target.Position - position.Value) * acceleration.Value;
+                acceleration.Directed = new float3(directed.x, 0f, directed.z);
             }
         }
 
@@ -88,5 +89,5 @@ public class UnitSystems
             return job.Schedule(this, inputDeps);
         }
     }
-
+    //------------RenderingSystems-------------//
 }

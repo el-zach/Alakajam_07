@@ -53,6 +53,7 @@ public class Game : MonoBehaviour
     //----------EntityTags---------//
     public struct Enemy : IComponentData { }
     public struct SpawnPoint : IComponentData { }
+    //public struct Billboard : IComponentData { }
 
     //----------PhysicComponents-------//
     public struct Velocity : IComponentData
@@ -123,7 +124,7 @@ public class Game : MonoBehaviour
         for (int i = 0; i < spawnCount; i++)
         {
             var newUnit = manager.CreateEntity(enemy.archetype);
-            Vector3 spawnPoint = Quaternion.Euler(0f, UnityEngine.Random.Range(0f, 360f), 0f) * Vector3.forward * spawnDistance;
+            Vector3 spawnPoint = Quaternion.Euler(0f, UnityEngine.Random.Range(0f, 360f), 0f) * Vector3.forward * spawnDistance + Vector3.up*0.5f;
             manager.SetComponentData(newUnit,
                 new Translation
                 {
