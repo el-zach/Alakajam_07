@@ -44,6 +44,12 @@ public class Game : MonoBehaviour
     public UnitSettings enemy, bowMan, knight, projectile;
     public ObjectSettings spawner;
 
+    [Header("Test Settings")]
+    public float spawnDistance = 10f;
+    [Range(0.1f,2f)]
+    public float spawnFrequency = 1f;
+    public int spawnCount = 1;
+
     //----------EntityTags---------//
     public struct Enemy : IComponentData { }
     public struct SpawnPoint : IComponentData { }
@@ -114,22 +120,25 @@ public class Game : MonoBehaviour
     [ContextMenu("Test Spawn")]
     public void TestSpawnEnemy()
     {
-        var newUnit = manager.CreateEntity(enemy.archetype);
-        Vector3 spawnPoint = Quaternion.Euler(0f,UnityEngine.Random.Range(0f,360f),0f)* Vector3.forward * 10f;
-        manager.SetComponentData(newUnit,
-            new Translation
-            {
-                Value = spawnPoint
-            });
-        enemy.InitAppearance(manager, newUnit);
-        enemy.InitStats(manager, newUnit);
+        for (int i = 0; i < spawnCount; i++)
+        {
+            var newUnit = manager.CreateEntity(enemy.archetype);
+            Vector3 spawnPoint = Quaternion.Euler(0f, UnityEngine.Random.Range(0f, 360f), 0f) * Vector3.forward * spawnDistance;
+            manager.SetComponentData(newUnit,
+                new Translation
+                {
+                    Value = spawnPoint
+                });
+            enemy.InitAppearance(manager, newUnit);
+            enemy.InitStats(manager, newUnit);
+        }
     }
 
     IEnumerator SpawnEveryFewSeconds(float _time)
     {
         yield return new WaitForSeconds(_time);
         TestSpawnEnemy();
-        StartCoroutine(SpawnEveryFewSeconds(UnityEngine.Random.Range(0.2f, 3f)));
+        StartCoroutine(SpawnEveryFewSeconds(UnityEngine.Random.Range(0.2f, 3f)*spawnFrequency));
     }
 
 }
