@@ -146,12 +146,24 @@ MonoBehaviour:
   m_GameObject: {fileID: 413053708}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2827ec46c856a934e8fcbcbb1fc25f33, type: 3}
+  m_Script: {fileID: 11500000, guid: 2a14cc92e73811e4a9cc5a2c88cbeb13, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  count: 4
-  mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
-  material: {fileID: 2100000, guid: c9ebc17de749f7b43abb5dc15cf56750, type: 2}
+  enemy:
+    mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
+    material: {fileID: 2100000, guid: c9ebc17de749f7b43abb5dc15cf56750, type: 2}
+  spawner:
+    mesh: {fileID: 0}
+    material: {fileID: 0}
+  bowMan:
+    mesh: {fileID: 0}
+    material: {fileID: 0}
+  knight:
+    mesh: {fileID: 0}
+    material: {fileID: 0}
+  projectile:
+    mesh: {fileID: 0}
+    material: {fileID: 0}
 --- !u!4 &413053710
 Transform:
   m_ObjectHideFlags: 0

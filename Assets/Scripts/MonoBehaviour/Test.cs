@@ -63,7 +63,7 @@ public class Test : MonoBehaviour
 
 }
 
-public class MovementSystem : ComponentSystem
+/*public class MovementSystem : ComponentSystem
 {
     protected override void OnUpdate()
     {
@@ -85,4 +85,4 @@ public class RotatorSystem : ComponentSystem
             rotation.Value = quaternion.Euler(0f, 0f, math.PI * Time.realtimeSinceStartup);
         });
     }
-}
+}*/
