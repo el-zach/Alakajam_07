@@ -12,7 +12,7 @@ public class Avoid : MonoBehaviour
     public struct Point : IComponentData
     {
         public float3 Position;
-        public float Range;
+        public float RangeSqr;
     }
 
 
@@ -25,7 +25,7 @@ public class Avoid : MonoBehaviour
         foreach(Transform child in transform)
         {
             var newEntity = manager.CreateEntity(typeof(Point));
-            manager.SetComponentData(newEntity, new Point { Position = child.position, Range = range });
+            manager.SetComponentData(newEntity, new Point { Position = child.position, RangeSqr = math.pow(range,2f) });
         }
     }
 

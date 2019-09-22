@@ -12,7 +12,7 @@ using Unity.Collections;
 public class UnitSystems 
 {
     //static EntityManager manager;
-    public class MainThread : ComponentSystem
+    public class Unit_MainThread : ComponentSystem
     {
         protected override void OnUpdate()
         {
