@@ -13,18 +13,46 @@ public class PlayerManager : MonoBehaviour
     [System.Serializable]
     public class GoldEvent : UnityEvent<int> { }
 
-    public UnityEngine.UI.Text goldText, lifeText;
+    public UnityEngine.UI.Text goldText, lifeText, highscoreText;
 
     public GoldEvent OnGoldGain = new GoldEvent(), OnGoldLoss = new GoldEvent();
-    public UnityEvent OnHealthLoss;
+    public UnityEvent OnHealthLoss, OnGameOver;
 
+    public int highscore = 0;
     public int gold = 250;
     public int life = 9;
 
+    public void SetHighScore()
+    {
+        PlayerPrefs.SetInt("HighScore", gold);
+    }
+
+    public void GetHighScore()
+    {
+        if (PlayerPrefs.HasKey("HighScore"))
+        {
+            highscore = PlayerPrefs.GetInt("HighScore");
+        }
+        else
+        {
+            highscore = 0;
+        }
+    }
+
     public void HealthLoss()
     {
-        life--;
-        OnHealthLoss.Invoke();
+        if (life > 0)
+        {
+            life--;
+            OnHealthLoss.Invoke();
+            if(life == 0)
+            {
+                OnGameOver.Invoke();
+            }
+        }
+        
+
+        
     }
 
     public void Pay(int cost)
@@ -44,6 +72,12 @@ public class PlayerManager : MonoBehaviour
         Gain(Random.Range(3, 30));
     }
 
+    private void Start()
+    {
+        GetHighScore();
+        UpdateHighscoreUI();
+    }
+
     private void Update()
     {
         UpdateUI();
@@ -55,4 +89,8 @@ public class PlayerManager : MonoBehaviour
         lifeText.text = "PrincECS " + life.ToString();
     }
 
+    public void UpdateHighscoreUI()
+    {
+        highscoreText.text = "Highscore: " + highscore;
+    }
 }
