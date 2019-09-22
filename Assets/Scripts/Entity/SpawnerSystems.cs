@@ -46,7 +46,7 @@ public class SpawnerSystems
                 //{
                 //    Value = pos
                 //});
-                Game.Instance.SpawnEnemy(pos);
+                Game.Instance.SpawnEnemy(pos,true);
             }
         }
 

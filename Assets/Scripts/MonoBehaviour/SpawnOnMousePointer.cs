@@ -35,8 +35,11 @@ public class SpawnOnMousePointer : MonoBehaviour
     void Spawn()
     {
         Entity newEntity = manager.CreateEntity(toSpawn.archetype);
-        toSpawn.InitAppearance(manager, newEntity, UnityEngine.Random.Range(0.8f, 1.3f));
-        manager.SetComponentData(newEntity, new Translation { Value = WorldFromMouse() });
+        float size = UnityEngine.Random.Range(0.8f, 1.3f);
+        toSpawn.InitAppearance(manager, newEntity, size);
+        float3 pos = WorldFromMouse();
+        manager.SetComponentData(newEntity, new Translation { Value = pos +new float3(0f,size*0.5f,0f) });
+        Avoid.Instance.AddAvoidPoint(pos, size, UnityEngine.Random.Range(1f, 40f));
     }
 
     Plane zeroPlane;
@@ -47,7 +50,7 @@ public class SpawnOnMousePointer : MonoBehaviour
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         float distance;
         zeroPlane.Raycast(ray, out distance);
-        float3 position = ray.GetPoint(distance)+Vector3.up*0.5f;
+        float3 position = ray.GetPoint(distance);
         return position;
     }
 

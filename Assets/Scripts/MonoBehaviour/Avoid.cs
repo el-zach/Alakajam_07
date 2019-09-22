@@ -9,6 +9,12 @@ using Unity.Collections;
 
 public class Avoid : MonoBehaviour
 {
+    public static Avoid Instance;
+    private void Awake()
+    {
+        if (!Instance) Instance = this;
+    }
+
     public struct Point : IComponentData
     {
         public float3 Position;
@@ -26,14 +32,30 @@ public class Avoid : MonoBehaviour
         manager = World.Active.EntityManager;
         foreach(Transform child in transform)
         {
-            var newEntity = manager.CreateEntity(typeof(Point));
-            manager.SetComponentData(newEntity, 
-                new Point {
-                    Position = child.position,
-                    RangeSqr = math.pow(range*child.localScale.x,2f),
-                    Power = child.localRotation.eulerAngles.y*power
-                });
+            AddPointEntity(child);
         }
+    }
+
+    public void AddAvoidPoint(Vector3 _worldPos, float _range = 1f, float _power = 1f)
+    {
+        GameObject managedObject = new GameObject();
+        managedObject.transform.SetParent(this.transform);
+        managedObject.transform.position = _worldPos;
+        managedObject.transform.localScale = Vector3.one * _range;
+        managedObject.transform.localRotation = Quaternion.Euler(0f, _power, 0f);
+        AddPointEntity(managedObject.transform);
+    }
+
+    void AddPointEntity(Transform child)
+    {
+        var newEntity = manager.CreateEntity(typeof(Point));
+        manager.SetComponentData(newEntity,
+            new Point
+            {
+                Position = child.position,
+                RangeSqr = math.pow(range * child.localScale.x, 2f),
+                Power = child.localRotation.eulerAngles.y * power
+            });
     }
 
     private void OnDrawGizmos()

@@ -54,11 +54,12 @@ public class Game : MonoBehaviour
     public UnitSettings enemy, bowMan, knight, projectile;
     public ObjectSettings spawner;
 
-    [Header("Test Settings")]
+    [Header("Spawn Settings")]
     public float spawnDistance = 10f;
     [Range(0.1f,2f)]
     public float spawnFrequency = 1f;
     public int spawnCount = 1;
+    public float velocityAtStart = 5f;
 
     //----------EntityTags---------//
     public struct Enemy : IComponentData { }
@@ -124,6 +125,8 @@ public class Game : MonoBehaviour
             typeof(LocalToWorld),
             typeof(Translation),
             typeof(Scale),
+            typeof(ObjectSystems.Billboard),
+            typeof(Rotation),
             typeof(SpawnPoint)
         );
 
@@ -154,16 +157,29 @@ public class Game : MonoBehaviour
         }
     }
 
-    public void SpawnEnemy(float3 spawnPoint)
+    public void SpawnEnemy(float3 spawnPoint, bool randomVelocity = false)
     {
         var newUnit = manager.CreateEntity(enemy.archetype);
+        float size = UnityEngine.Random.Range(0.8f, 1.3f);
+        enemy.InitAppearance(manager, newUnit, size);
+        spawnPoint.y=0f+size*0.5f;
         manager.SetComponentData(newUnit,
             new Translation
             {
                 Value = spawnPoint
             });
-        enemy.InitAppearance(manager, newUnit, UnityEngine.Random.Range(0.8f, 1.3f));
         enemy.InitStats(manager, newUnit);
+        if (randomVelocity)
+        {
+            float3 direction = math.mul(
+                quaternion.Euler(new float3(0f, UnityEngine.Random.Range(0f, 360f), 0f)),
+                new float3(0f, 0f, 1f)
+                );
+            manager.SetComponentData(newUnit, new Velocity
+            {
+                Value = direction* velocityAtStart
+            });
+        }
     }
 
     public void SpawnSpawner()
@@ -172,11 +188,12 @@ public class Game : MonoBehaviour
         {
             var newUnit = manager.CreateEntity(spawner.archetype);
             Vector3 spawnPoint = Quaternion.Euler(0f, UnityEngine.Random.Range(0f, 360f), 0f) * Vector3.forward * spawnDistance * UnityEngine.Random.Range(0.5f,2f) + Vector3.up * 0.5f;
-            spawner.InitAppearance(manager, newUnit, 0.5f);
+            float size = UnityEngine.Random.Range(0.5f, 1.5f);
+            spawner.InitAppearance(manager, newUnit, size);
             manager.SetComponentData(newUnit,
                 new Translation
                 {
-                    Value = spawnPoint
+                    Value = spawnPoint + Vector3.up*size*0.5f
                 });
             manager.SetComponentData(newUnit,
                 new SpawnPoint
