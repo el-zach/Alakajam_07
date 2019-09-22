@@ -58,7 +58,7 @@ public class AvoidSystems
                             velocity.Value +=
                                 math.normalize(distanceVector)
                                 * (1f - (distanceSqr / points[j].RangeSqr))
-                                * 2f //pushForce
+                                * points[j].Power //pushForce
                                 * deltaTime;
                         }
                     }

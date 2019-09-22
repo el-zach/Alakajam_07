@@ -19,6 +19,7 @@ public class Avoid : MonoBehaviour
 
     EntityManager manager;
     public float range=10f;
+    public float power = 0.1f;
     // Start is called before the first frame update
     void Start()
     {
@@ -30,7 +31,7 @@ public class Avoid : MonoBehaviour
                 new Point {
                     Position = child.position,
                     RangeSqr = math.pow(range*child.localScale.x,2f),
-                    Power = child.localRotation.eulerAngles.y+1f
+                    Power = child.localRotation.eulerAngles.y*power
                 });
         }
     }
