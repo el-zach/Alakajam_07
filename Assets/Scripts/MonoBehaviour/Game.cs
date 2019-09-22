@@ -95,6 +95,8 @@ public class Game : MonoBehaviour
             typeof(Translation),
             typeof(Scale), //could also be typeof(NonUniformScale) 
             typeof(Enemy),
+            typeof(ObjectSystems.Billboard),
+            typeof(Rotation),
             typeof(Velocity),
             typeof(Acceleration),
             typeof(DampenVelocity),

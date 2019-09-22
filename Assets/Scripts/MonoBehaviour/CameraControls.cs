@@ -7,10 +7,11 @@ public class CameraControls : MonoBehaviour
 {
     public Cinemachine.CinemachineFreeLook virtualCam;
     public float sensitivity = 2f;
+    public string mouseButton = "Fire1";
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetAxis("Fire1") > 0f)
+        if (Input.GetAxis(mouseButton) > 0f)
         {
             virtualCam.m_XAxis.m_InputAxisValue = Input.GetAxis("Mouse X")* sensitivity;
             virtualCam.m_YAxis.m_InputAxisValue = Input.GetAxis("Mouse Y")* sensitivity;
