@@ -11,12 +11,12 @@ using Unity.Collections;
 
 public class UnitSystems 
 {
-    //static EntityManager manager;
+    static EntityManager manager;
     public class Unit_MainThread : ComponentSystem
     {
         protected override void OnUpdate()
         {
-            //if (UnitSystems.manager == null) manager = World.Active.EntityManager;
+            if (UnitSystems.manager == null) manager = World.Active.EntityManager;
             Entities.ForEach((Entity entity, ref Game.HasWalkingTarget target, ref Translation position, ref Game.Acceleration acceleration) => // DO IT ON THE MAINTHREAD BECAUSE WHY NOT RIGHT?!
             {
                 //PostUpdateCommands.RemoveComponent(entity, typeof(RemoveTarget));
@@ -26,6 +26,23 @@ public class UnitSystems
                 {
                     PostUpdateCommands.RemoveComponent(entity, typeof(Game.HasWalkingTarget));
                     acceleration.Directed = new float3(0f, 0f, 0f);
+                    PlayerManager.Instance.HealthLoss();
+                    manager.DestroyEntity(entity);
+                }
+            });
+        }
+    }
+
+    public class UnitDeath_MainThread : ComponentSystem
+    {
+        protected override void OnUpdate()
+        {
+            if (UnitSystems.manager == null) manager = World.Active.EntityManager;
+            Entities.ForEach((Entity entity, ref Game.Health health) => // DO IT ON THE MAINTHREAD BECAUSE WHY NOT RIGHT?!
+            {
+                if (health.Current <= 0f)
+                {
+                    manager.DestroyEntity(entity);
                 }
             });
         }
@@ -38,9 +55,6 @@ public class UnitSystems
     //---------------MovementSystems---------------
     public class AccelerateToTarget : JobComponentSystem
     {
-        //private readonly EndFrameBarrier m_EndFrameBarrier;
-        
-
         [BurstCompile]
         struct TargetingJob : IJobForEachWithEntity<Game.Acceleration, Game.HasWalkingTarget, Translation>
         {
@@ -154,5 +168,46 @@ public class UnitSystems
             return job.Schedule(this, inputDeps);
         }
     }
-    //------------RenderingSystems-------------//
+    
+    
+    public class DecayHealth : JobComponentSystem
+    {
+        [RequireComponentTag(typeof(Game.DamageOverTime))]
+        [BurstCompile]
+        struct DecayJob : IJobForEach<Game.Health>
+        {
+            public float timeDelta;
+
+            public void Execute(ref Game.Health health)
+            {
+                health.Current -= timeDelta;
+            }
+        }
+
+        protected override JobHandle OnUpdate(JobHandle inputDeps)
+        {
+            var job = new DecayJob() { timeDelta = Time.deltaTime};
+            return job.Schedule(this, inputDeps);
+        }
+    }
+
+    public class DecaySize : JobComponentSystem
+    {
+        [RequireComponentTag(typeof(Game.DamageOverTime))]
+        [BurstCompile]
+        struct DecayJob : IJobForEach<NonUniformScale, Game.Health>
+        {
+            public void Execute(ref NonUniformScale scale, [ReadOnly]ref Game.Health health)
+            {
+                scale.Value.x = health.Current / health.Max * scale.Value.y;
+            }
+        }
+
+        protected override JobHandle OnUpdate(JobHandle inputDeps)
+        {
+            var job = new DecayJob();
+            return job.Schedule(this, inputDeps);
+        }
+    }
+
 }

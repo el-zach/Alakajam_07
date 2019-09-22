@@ -15,31 +15,38 @@ public class SpawnOnMousePointer : MonoBehaviour
 
     public KeyCode spawnButton;
 
+    public int cost = 35;
+
     private void Start()
     {
         manager = World.Active.EntityManager;
-        toSpawn = Game.Instance.bowMan;
+        toSpawn = Game.Instance.knight;
         zeroPlane = new Plane(Vector3.up,Vector3.zero);
     }
 
     // Update is called once per frame
     void Update()
     {
-
         if (Input.GetKeyDown(spawnButton))
         {
-            Spawn();
+            if (PlayerManager.Instance.gold >= cost)
+            {
+                Spawn();
+                PlayerManager.Instance.Pay(cost);
+            }
         }
     }
 
     void Spawn()
     {
         Entity newEntity = manager.CreateEntity(toSpawn.archetype);
-        float size = UnityEngine.Random.Range(0.8f, 1.3f);
-        toSpawn.InitAppearance(manager, newEntity, size);
+        float size = toSpawn.sizeCurve.Evaluate(UnityEngine.Random.value);
+        toSpawn.InitAppearance(manager, newEntity, Vector3.one*size);
         float3 pos = WorldFromMouse();
         manager.SetComponentData(newEntity, new Translation { Value = pos +new float3(0f,size*0.5f,0f) });
-        Avoid.Instance.AddAvoidPoint(pos, size, UnityEngine.Random.Range(1f, 40f));
+        float _health = toSpawn.health.Evaluate(UnityEngine.Random.value);
+        manager.SetComponentData(newEntity, new Game.Health { Max = _health, Current = _health });
+        Avoid.Instance.AddAvoidPoint(pos, newEntity, 0.5f+size*0.2f, UnityEngine.Random.Range(1f, 20f));
     }
 
     Plane zeroPlane;

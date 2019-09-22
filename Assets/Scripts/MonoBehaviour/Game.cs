@@ -22,13 +22,20 @@ public class Game : MonoBehaviour
         public Mesh mesh;
         public Material material;
         public EntityArchetype archetype;
+        public AnimationCurve sizeCurve = new AnimationCurve(new Keyframe(0f, 1f), new Keyframe(1f, 1f));
 
         public void InitAppearance(EntityManager _manager, Entity _entity, float _size=1f)
         {
             _manager.SetSharedComponentData(_entity,new RenderMesh{ mesh = mesh,material = material,castShadows = UnityEngine.Rendering.ShadowCastingMode.On, receiveShadows = true});
             _manager.SetComponentData(_entity, new Scale { Value = _size });
         }
-        
+
+        public void InitAppearance(EntityManager _manager, Entity _entity, Vector3 _size)
+        {
+            _manager.SetSharedComponentData(_entity, new RenderMesh { mesh = mesh, material = material, castShadows = UnityEngine.Rendering.ShadowCastingMode.On, receiveShadows = true });
+            _manager.SetComponentData(_entity, new NonUniformScale { Value = _size });
+        }
+
 
     }
     [System.Serializable]
@@ -41,7 +48,8 @@ public class Game : MonoBehaviour
 
         public void InitStats(EntityManager _manager, Entity _entity)
         {
-            _manager.SetComponentData(_entity, new Health { Value = health.Evaluate(UnityEngine.Random.value) });
+            //float _health = health.Evaluate(UnityEngine.Random.value);
+            //_manager.SetComponentData(_entity, new Health { Max = _health, Current = _health });
             _manager.SetComponentData(_entity, new Acceleration { Value = acceleration.Evaluate(UnityEngine.Random.value) });
             _manager.SetComponentData(_entity, new DampenVelocity { Value = velocityDampen });
             _manager.SetComponentData(_entity, new MaxSpeed { Value = maxSpeed.Evaluate(UnityEngine.Random.value) });
@@ -51,7 +59,7 @@ public class Game : MonoBehaviour
 
     EntityManager manager;
     public bool SpawnWavesAtStart = true;
-    public UnitSettings enemy, bowMan, knight, projectile;
+    public UnitSettings enemy, knight;
     public ObjectSettings spawner;
 
     [Header("Spawn Settings")]
@@ -68,7 +76,7 @@ public class Game : MonoBehaviour
         public float Frequency;
         public float Timer;
     }
-    public struct BowMan : IComponentData { }
+    public struct Knight : IComponentData { }
     //public struct Billboard : IComponentData { }
 
     //----------PhysicComponents-------//
@@ -93,12 +101,14 @@ public class Game : MonoBehaviour
     //---------GameComponents---------//
     public struct Health : IComponentData
     {
-        public float Value;
+        public float Max;
+        public float Current;
     }
     public struct HasWalkingTarget : IComponentData
     {
         public float3 Position;
     }
+    public struct DamageOverTime : IComponentData { }
 
     public void Init()
     {
@@ -116,8 +126,8 @@ public class Game : MonoBehaviour
             typeof(Acceleration),
             typeof(DampenVelocity),
             typeof(MaxSpeed),
-            typeof(HasWalkingTarget),
-            typeof(Health)
+            typeof(HasWalkingTarget)
+            //typeof(Health)
         );
 
         spawner.archetype = manager.CreateArchetype(
@@ -130,12 +140,14 @@ public class Game : MonoBehaviour
             typeof(SpawnPoint)
         );
 
-        bowMan.archetype = manager.CreateArchetype(
+        knight.archetype = manager.CreateArchetype(
                 typeof(RenderMesh),
                 typeof(LocalToWorld),
                 typeof(Translation),
-                typeof(Scale),
-                typeof(BowMan),
+                typeof(NonUniformScale),
+                typeof(Knight),
+                typeof(Health),
+                typeof(DamageOverTime),
                 typeof(ObjectSystems.Billboard),
                 typeof(Rotation)
             );
@@ -160,7 +172,7 @@ public class Game : MonoBehaviour
     public void SpawnEnemy(float3 spawnPoint, bool randomVelocity = false)
     {
         var newUnit = manager.CreateEntity(enemy.archetype);
-        float size = UnityEngine.Random.Range(0.8f, 1.3f);
+        float size = enemy.sizeCurve.Evaluate(UnityEngine.Random.value);
         enemy.InitAppearance(manager, newUnit, size);
         spawnPoint.y=0f+size*0.5f;
         manager.SetComponentData(newUnit,
@@ -188,7 +200,7 @@ public class Game : MonoBehaviour
         {
             var newUnit = manager.CreateEntity(spawner.archetype);
             Vector3 spawnPoint = Quaternion.Euler(0f, UnityEngine.Random.Range(0f, 360f), 0f) * Vector3.forward * spawnDistance * UnityEngine.Random.Range(0.5f,2f) + Vector3.up * 0.5f;
-            float size = UnityEngine.Random.Range(0.5f, 1.5f);
+            float size = spawner.sizeCurve.Evaluate(UnityEngine.Random.value);
             spawner.InitAppearance(manager, newUnit, size);
             manager.SetComponentData(newUnit,
                 new Translation

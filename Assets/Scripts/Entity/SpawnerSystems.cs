@@ -32,6 +32,7 @@ public class SpawnerSystems
                     {
                         //toDestroy.Add(entity);
                         PostUpdateCommands.DestroyEntity(entity);
+                        PlayerManager.Instance.GainRandom();
                         //queue destruction spawner
                     }
                 }

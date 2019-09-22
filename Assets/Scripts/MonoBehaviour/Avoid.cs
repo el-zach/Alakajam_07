@@ -26,6 +26,7 @@ public class Avoid : MonoBehaviour
     EntityManager manager;
     public float range=10f;
     public float power = 0.1f;
+    public bool debugObjects = false;
     // Start is called before the first frame update
     void Start()
     {
@@ -46,6 +47,16 @@ public class Avoid : MonoBehaviour
         AddPointEntity(managedObject.transform);
     }
 
+    public void AddAvoidPoint(Vector3 _worldPos, Entity _entity, float _range = 1f, float _power = 1f)
+    {
+        GameObject managedObject = new GameObject();
+        managedObject.transform.SetParent(this.transform);
+        managedObject.transform.position = _worldPos;
+        managedObject.transform.localScale = Vector3.one * _range;
+        managedObject.transform.localRotation = Quaternion.Euler(0f, _power, 0f);
+        AddPointEntity(managedObject.transform,_entity);
+    }
+
     void AddPointEntity(Transform child)
     {
         var newEntity = manager.CreateEntity(typeof(Point));
@@ -56,6 +67,19 @@ public class Avoid : MonoBehaviour
                 RangeSqr = math.pow(range * child.localScale.x, 2f),
                 Power = child.localRotation.eulerAngles.y * power
             });
+        if (!debugObjects) Destroy(child.gameObject);
+    }
+
+    void AddPointEntity(Transform child, Entity _entity)
+    {
+        manager.AddComponentData(_entity,
+            new Point
+            {
+                Position = child.position,
+                RangeSqr = math.pow(range * child.localScale.x, 2f),
+                Power = child.localRotation.eulerAngles.y * power
+            });
+        if (!debugObjects) Destroy(child.gameObject);
     }
 
     private void OnDrawGizmos()
