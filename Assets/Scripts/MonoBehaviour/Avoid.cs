@@ -13,6 +13,7 @@ public class Avoid : MonoBehaviour
     {
         public float3 Position;
         public float RangeSqr;
+        public float Power;
     }
 
 
@@ -25,7 +26,12 @@ public class Avoid : MonoBehaviour
         foreach(Transform child in transform)
         {
             var newEntity = manager.CreateEntity(typeof(Point));
-            manager.SetComponentData(newEntity, new Point { Position = child.position, RangeSqr = math.pow(range,2f) });
+            manager.SetComponentData(newEntity, 
+                new Point {
+                    Position = child.position,
+                    RangeSqr = math.pow(range*child.localScale.x,2f),
+                    Power = child.localRotation.eulerAngles.y+1f
+                });
         }
     }
 
@@ -33,7 +39,9 @@ public class Avoid : MonoBehaviour
     {
         foreach(Transform child in transform)
         {
-            Gizmos.DrawWireSphere(child.position, range);
+            float value = 1f - Mathf.Abs(child.localRotation.eulerAngles.y) / 180f;
+            Gizmos.color = new Color(1f,value, value);
+            Gizmos.DrawWireSphere(child.position, range*child.localScale.x);
         }
     }
 }

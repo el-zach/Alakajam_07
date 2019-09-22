@@ -41,6 +41,8 @@ public class AvoidSystems
             public NativeArray<ArchetypeChunk> chunks;
             public ArchetypeChunkComponentType<Avoid.Point> pointType;
 
+            public float deltaTime;
+
             public void Execute(ref Game.Velocity velocity, ref Translation position)
             {
                 for (int i=0; i < chunks.Length; i++)
@@ -56,7 +58,8 @@ public class AvoidSystems
                             velocity.Value +=
                                 math.normalize(distanceVector)
                                 * (1f - (distanceSqr / points[j].RangeSqr))
-                                * 0.2f; //pushForce
+                                * 2f //pushForce
+                                * deltaTime;
                         }
                     }
                 }
@@ -68,7 +71,8 @@ public class AvoidSystems
             inputDeps = new AddAvoidanceJob
             {
                 chunks = query.CreateArchetypeChunkArray(Allocator.TempJob),
-                pointType = GetArchetypeChunkComponentType<Avoid.Point>()
+                pointType = GetArchetypeChunkComponentType<Avoid.Point>(),
+                deltaTime = Time.deltaTime
             }.Schedule(this, inputDeps);
 
             return inputDeps;
