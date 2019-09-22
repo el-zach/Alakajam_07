@@ -17,14 +17,14 @@ public class UnitSystems
         protected override void OnUpdate()
         {
             //if (UnitSystems.manager == null) manager = World.Active.EntityManager;
-            Entities.ForEach((Entity entity, ref Game.HasTarget target, ref Translation position, ref Game.Acceleration acceleration) => // DO IT ON THE MAINTHREAD BECAUSE WHY NOT RIGHT?!
+            Entities.ForEach((Entity entity, ref Game.HasWalkingTarget target, ref Translation position, ref Game.Acceleration acceleration) => // DO IT ON THE MAINTHREAD BECAUSE WHY NOT RIGHT?!
             {
                 //PostUpdateCommands.RemoveComponent(entity, typeof(RemoveTarget));
                 float3 distance = target.Position - position.Value;
                 distance.y = 0f;
                 if (math.lengthsq(distance) <= 0.1f)
                 {
-                    PostUpdateCommands.RemoveComponent(entity, typeof(Game.HasTarget));
+                    PostUpdateCommands.RemoveComponent(entity, typeof(Game.HasWalkingTarget));
                     acceleration.Directed = new float3(0f, 0f, 0f);
                 }
             });
@@ -42,11 +42,11 @@ public class UnitSystems
         
 
         [BurstCompile]
-        struct TargetingJob : IJobForEachWithEntity<Game.Acceleration, Game.HasTarget, Translation>
+        struct TargetingJob : IJobForEachWithEntity<Game.Acceleration, Game.HasWalkingTarget, Translation>
         {
             //public EntityCommandBuffer.Concurrent commands;
 
-            public void Execute(Entity entity, int index, ref Game.Acceleration acceleration, [ReadOnly] ref Game.HasTarget target, [ReadOnly] ref Translation position)
+            public void Execute(Entity entity, int index, ref Game.Acceleration acceleration, [ReadOnly] ref Game.HasWalkingTarget target, [ReadOnly] ref Translation position)
             {
                 float3 directed = target.Position - position.Value;
                 //if (math.lengthsq(directed) >= 0.1f)

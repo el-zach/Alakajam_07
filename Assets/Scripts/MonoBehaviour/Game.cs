@@ -9,6 +9,13 @@ using Unity.Collections;
 
 public class Game : MonoBehaviour
 {
+    public static Game Instance;
+    private void Awake()
+    {
+        if (!Instance) Instance = this;
+    }
+
+
     [System.Serializable]
     public class ObjectSettings
     {
@@ -21,6 +28,8 @@ public class Game : MonoBehaviour
             _manager.SetSharedComponentData(_entity,new RenderMesh{ mesh = mesh,material = material,castShadows = UnityEngine.Rendering.ShadowCastingMode.On, receiveShadows = true});
             _manager.SetComponentData(_entity, new Scale { Value = _size });
         }
+        
+
     }
     [System.Serializable]
     public class UnitSettings : ObjectSettings
@@ -53,7 +62,12 @@ public class Game : MonoBehaviour
 
     //----------EntityTags---------//
     public struct Enemy : IComponentData { }
-    public struct SpawnPoint : IComponentData { }
+    public struct SpawnPoint : IComponentData {
+        public int Count;
+        public float Frequency;
+        public float Timer;
+    }
+    public struct BowMan : IComponentData { }
     //public struct Billboard : IComponentData { }
 
     //----------PhysicComponents-------//
@@ -80,7 +94,7 @@ public class Game : MonoBehaviour
     {
         public float Value;
     }
-    public struct HasTarget : IComponentData
+    public struct HasWalkingTarget : IComponentData
     {
         public float3 Position;
     }
@@ -101,7 +115,7 @@ public class Game : MonoBehaviour
             typeof(Acceleration),
             typeof(DampenVelocity),
             typeof(MaxSpeed),
-            typeof(HasTarget),
+            typeof(HasWalkingTarget),
             typeof(Health)
         );
 
@@ -112,6 +126,16 @@ public class Game : MonoBehaviour
             typeof(Scale),
             typeof(SpawnPoint)
         );
+
+        bowMan.archetype = manager.CreateArchetype(
+                typeof(RenderMesh),
+                typeof(LocalToWorld),
+                typeof(Translation),
+                typeof(Scale),
+                typeof(BowMan),
+                typeof(ObjectSystems.Billboard),
+                typeof(Rotation)
+            );
     }
 
     private void Start()
@@ -126,15 +150,40 @@ public class Game : MonoBehaviour
     {
         for (int i = 0; i < spawnCount; i++)
         {
-            var newUnit = manager.CreateEntity(enemy.archetype);
-            Vector3 spawnPoint = Quaternion.Euler(0f, UnityEngine.Random.Range(0f, 360f), 0f) * Vector3.forward * spawnDistance + Vector3.up*0.5f;
+            SpawnEnemy(Quaternion.Euler(0f, UnityEngine.Random.Range(0f, 360f), 0f) * Vector3.forward * spawnDistance + Vector3.up * 0.5f);
+        }
+    }
+
+    public void SpawnEnemy(float3 spawnPoint)
+    {
+        var newUnit = manager.CreateEntity(enemy.archetype);
+        manager.SetComponentData(newUnit,
+            new Translation
+            {
+                Value = spawnPoint
+            });
+        enemy.InitAppearance(manager, newUnit, UnityEngine.Random.Range(0.8f, 1.3f));
+        enemy.InitStats(manager, newUnit);
+    }
+
+    public void SpawnSpawner()
+    {
+        for (int i = 0; i < spawnCount; i++)
+        {
+            var newUnit = manager.CreateEntity(spawner.archetype);
+            Vector3 spawnPoint = Quaternion.Euler(0f, UnityEngine.Random.Range(0f, 360f), 0f) * Vector3.forward * spawnDistance * UnityEngine.Random.Range(0.5f,2f) + Vector3.up * 0.5f;
+            spawner.InitAppearance(manager, newUnit, 0.5f);
             manager.SetComponentData(newUnit,
                 new Translation
                 {
                     Value = spawnPoint
                 });
-            enemy.InitAppearance(manager, newUnit);
-            enemy.InitStats(manager, newUnit);
+            manager.SetComponentData(newUnit,
+                new SpawnPoint
+                {
+                    Count = UnityEngine.Random.Range(2, 12),
+                    Frequency = UnityEngine.Random.Range(0.5f, 3f)
+                });
         }
     }
 
@@ -147,7 +196,8 @@ public class Game : MonoBehaviour
     IEnumerator SpawnEveryFewSeconds(float _time)
     {
         yield return new WaitForSeconds(_time);
-        TestSpawnEnemy();
+        //TestSpawnEnemy();
+        SpawnSpawner();
         StartCoroutine(SpawnEveryFewSeconds(UnityEngine.Random.Range(0.2f, 3f)*spawnFrequency));
     }
 
