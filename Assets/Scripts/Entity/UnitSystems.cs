@@ -12,8 +12,10 @@ using Unity.Collections;
 public class UnitSystems 
 {
     static EntityManager manager;
-    public class Unit_MainThread : ComponentSystem
+    /*public class Unit_MainThread : ComponentSystem
     {
+
+
         protected override void OnUpdate()
         {
             if (UnitSystems.manager == null) manager = World.Active.EntityManager;
@@ -30,6 +32,67 @@ public class UnitSystems
                     manager.DestroyEntity(entity);
                 }
             });
+        }
+    }*/
+
+    public struct HealthLossTag : IComponentData { }
+
+    public class HealthSystem_MainThread : ComponentSystem
+    {
+        protected override void OnUpdate()
+        {
+            if (UnitSystems.manager == null) manager = World.Active.EntityManager;
+
+            Entities.ForEach((Entity entity, ref HealthLossTag tag) =>
+            {
+                PlayerManager.Instance.HealthLoss();
+                manager.RemoveComponent<HealthLossTag>(entity);
+            });
+        }
+    }
+
+    public class Test : JobComponentSystem
+    {
+        struct MyJob : IJobForEachWithEntity<Translation, Game.HasWalkingTarget,  Game.Acceleration>
+        {
+            public EntityCommandBuffer.Concurrent Commands;
+        
+            public void Execute(Entity entity, int index, [ReadOnly] ref Translation position, ref Game.HasWalkingTarget target, ref Game.Acceleration acceleration)
+            {
+                float3 distance = target.Position - position.Value;
+                distance.y = 0f;
+                if (math.lengthsq(distance) <= 0.1f)
+                {
+                    Commands.RemoveComponent(index, entity, typeof(Game.HasWalkingTarget));
+                    acceleration.Directed = new float3(0f, 0f, 0f);
+                    var instance = Commands.CreateEntity(index);
+                    Commands.AddComponent<HealthLossTag>(index, instance);
+                    Commands.DestroyEntity(index, entity);
+                }
+            }
+        }
+
+        private EndSimulationEntityCommandBufferSystem commands;
+        private EntityQuery query;
+
+        protected override void OnCreate()
+        {
+            base.OnCreate();
+            this.commands = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+
+            this.query = GetEntityQuery(
+                ComponentType.ReadWrite<Game.HasWalkingTarget>(),
+                ComponentType.ReadOnly<Translation>(),
+                ComponentType.ReadWrite<Game.Acceleration>()
+                );
+        }
+
+        protected override JobHandle OnUpdate(JobHandle inputDeps)
+        {
+            var job = new MyJob() { Commands = this.commands.CreateCommandBuffer().ToConcurrent() };
+            var handle = job.Schedule(this.query, inputDeps);
+            this.commands.AddJobHandleForProducer(handle);
+            return handle;
         }
     }
 

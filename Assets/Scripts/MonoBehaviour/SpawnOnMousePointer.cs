@@ -16,6 +16,7 @@ public class SpawnOnMousePointer : MonoBehaviour
     public KeyCode spawnButton;
 
     public int cost = 35;
+    public bool decayingTowers = true;
 
     private void Start()
     {
@@ -39,7 +40,7 @@ public class SpawnOnMousePointer : MonoBehaviour
 
     void Spawn()
     {
-        Entity newEntity = manager.CreateEntity(toSpawn.archetype);
+        Entity newEntity = manager.CreateEntity(decayingTowers?toSpawn.archetype : toSpawn.archetype2);
         float size = toSpawn.sizeCurve.Evaluate(UnityEngine.Random.value);
         toSpawn.InitAppearance(manager, newEntity, Vector3.one*size);
         float3 pos = WorldFromMouse();

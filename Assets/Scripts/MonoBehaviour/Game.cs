@@ -22,6 +22,7 @@ public class Game : MonoBehaviour
         public Mesh mesh;
         public Material material;
         public EntityArchetype archetype;
+        public EntityArchetype archetype2;
         public AnimationCurve sizeCurve = new AnimationCurve(new Keyframe(0f, 1f), new Keyframe(1f, 1f));
 
         public void InitAppearance(EntityManager _manager, Entity _entity, float _size=1f)
@@ -148,6 +149,16 @@ public class Game : MonoBehaviour
                 typeof(Knight),
                 typeof(Health),
                 typeof(DamageOverTime),
+                typeof(ObjectSystems.Billboard),
+                typeof(Rotation)
+            );
+        knight.archetype2 = manager.CreateArchetype(
+                typeof(RenderMesh),
+                typeof(LocalToWorld),
+                typeof(Translation),
+                typeof(NonUniformScale),
+                typeof(Knight),
+                typeof(Health),
                 typeof(ObjectSystems.Billboard),
                 typeof(Rotation)
             );
